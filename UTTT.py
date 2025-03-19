@@ -33,7 +33,8 @@ class UTTT:
         
         self.current_player = self._next_player()
         self.next_subboard = self._next_subboard(move)
-
+        
+        return True
 
     def _is_valid_board(self, board: tuple):
         return 0 <= board[0] < 3 and 0 <= board[1] < 3
