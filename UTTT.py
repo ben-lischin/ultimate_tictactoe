@@ -69,3 +69,24 @@ class UTTT:
             return None
         
         return board
+
+    # outputs list of valid move tuples: ((board_x, board_y),(move_x, move_y))[]
+    def get_valid_moves(self):
+        valid_moves = []
+
+        if self.next_subboard is not None:
+            self._get_valid_moves_subboard(*self.next_subboard, valid_moves)
+        else:
+            for board_row in range(3):
+                for board_col in range(3):
+                    self._get_valid_moves_subboard(board_row, board_col, valid_moves)
+
+        return valid_moves
+
+    def _get_valid_moves_subboard(self, board_row: int, board_col: int, valid_moves: list):
+        subboard = self.subboards[board_row][board_col]
+
+        for subboard_row in range(3):
+            for subboard_col in range(3):
+                if subboard.board[subboard_row][subboard_col] is None:
+                    valid_moves.append(((board_row, board_col), (subboard_row, subboard_col)))
