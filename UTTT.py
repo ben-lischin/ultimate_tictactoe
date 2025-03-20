@@ -85,6 +85,8 @@ class UTTT:
 
     def _get_valid_moves_subboard(self, board_row: int, board_col: int, valid_moves: list):
         subboard = self.subboards[board_row][board_col]
+        if subboard.winner:
+            return
 
         for subboard_row in range(3):
             for subboard_col in range(3):
