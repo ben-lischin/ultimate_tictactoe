@@ -1,4 +1,4 @@
-from SubBoard import SubBoard
+from subboard import SubBoard
 
 class UTTT:
     """
