@@ -11,16 +11,15 @@ class SubBoard:
         self.winner = None
 
     def make_move(self, player: str, move: tuple):
-        if not self._is_valid_move(move):
+        if not self.valid_move(move):
             return False
         
         self.board[move[0]][move[1]] = player
-
         self._update_winner(move)
 
         return True
 
-    def _is_valid_move(self, move: tuple):
+    def valid_move(self, move: tuple):
         return self.winner is None and self._is_on_board(move) and self.board[move[0]][move[1]] is None
 
     def _is_on_board(self, move: tuple):

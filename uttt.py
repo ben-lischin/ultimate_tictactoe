@@ -1,4 +1,8 @@
+from copy import deepcopy
 from subboard import SubBoard
+
+class InvalidMoveException(Exception): pass
+
 
 class UTTT:
     """
@@ -16,25 +20,27 @@ class UTTT:
         # None (in progress) | 'X' | 'O' | 'T' (tie)
         self.winner = None
 
-    def make_move(self, player: str, board: tuple, move: tuple):
+    def make_move(self, board: tuple, move: tuple):
         # check valid player moving and move validity at highest level
-        if player != self.current_player or not self._is_valid_board(board) or not self._satisfies_next_subboard(board):
-            return False
+        if not self._is_valid_board(board) or not self._satisfies_next_subboard(board):
+            raise InvalidMoveException(f" Player {self.current_player} made an invalid move")
         
-        valid = self.subboards[board[0]][board[1]].make_move(player, move)
         # check move validity in lower level
-        if not valid:
-            return False
+        if not self._get_subboard(board).valid_move(move):
+            raise InvalidMoveException(f" Player {self.current_player} made an invalid move")
         
-        # if the move was valid, it has already been applied
+        new_state = deepcopy(self)
+        new_state._get_subboard(board).make_move(self.current_player, move)
 
         # check for win
-        self._update_winner(board)
+        new_state._update_winner(board)
         
-        self.current_player = self._next_player()
-        self.next_subboard = self._next_subboard(move)
+        new_state.current_player = new_state._next_player()
+        new_state.next_subboard = new_state._next_subboard(move)
         
-        return True
+        return new_state
+
+    def game_winner(self): return self.winner
 
     def _is_valid_board(self, board: tuple):
         return 0 <= board[0] < 3 and 0 <= board[1] < 3
@@ -92,3 +98,6 @@ class UTTT:
             for subboard_col in range(3):
                 if subboard.board[subboard_row][subboard_col] is None:
                     valid_moves.append(((board_row, board_col), (subboard_row, subboard_col)))
+        return
+    
+    def _get_subboard(self, board): return self.subboards[board[0]][board[1]]
