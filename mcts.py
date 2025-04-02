@@ -5,7 +5,7 @@ import collections
 from uttt import UTTT
 
 EXPLORATION = 1.5
-ITERATIONS = 100
+ITERATIONS = 300
 
 def reward(winner, player):
     if winner == "T": return 0
@@ -15,15 +15,16 @@ def reward(winner, player):
 #------------------------ Tree nodes --------------------------#
 
 class Node:
-    def __init__(self, state: UTTT) -> None:
+    def __init__(self, state: UTTT, move: tuple[tuple, tuple] | None) -> None:
         self.state = state
         self.visits = 0
         self.val = 0
+        self.move_to_here = move
         self.children = []
 
     def expand_children(self):
         moves = self.state.get_valid_moves()
-        self.children = [Node(self.state.make_move(*move)) for move in moves]
+        self.children = [Node(self.state.make_move(*move), move) for move in moves]
 
     def update_result(self, reward):
         self.visits += 1
@@ -69,7 +70,7 @@ def update_tree(root: Node, player: str):
     back_propogation(path, reward)
 
 def predict(state: UTTT, player: str):
-    root = Node(state)
+    root = Node(state, None)
     for _ in range(ITERATIONS): update_tree(root, player)
     best_node = max(root.children, key=lambda node: node.val)
-    return best_node.state
+    return best_node.move_to_here
