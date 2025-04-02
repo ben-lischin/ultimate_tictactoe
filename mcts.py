@@ -1,11 +1,10 @@
 import random
 import time
 import math
-import collections
 from uttt import UTTT
 
-EXPLORATION = 1.5
-ITERATIONS = 300
+EXPLORATION = 400
+ITERATIONS = 1000
 
 def reward(winner, player):
     if winner == "T": return 0

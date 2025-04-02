@@ -29,7 +29,7 @@ class UTTT:
         if not self._get_subboard(board).valid_move(move):
             raise InvalidMoveException(f" Player {self.current_player} made an invalid move")
         
-        new_state = deepcopy(self)
+        new_state = self.copy()
         new_state._get_subboard(board).make_move(self.current_player, move)
 
         # check for win
@@ -78,26 +78,26 @@ class UTTT:
 
     # outputs list of valid move tuples: ((board_x, board_y),(move_x, move_y))[]
     def get_valid_moves(self):
-        valid_moves = []
-
         if self.next_subboard is not None:
-            self._get_valid_moves_subboard(*self.next_subboard, valid_moves)
-        else:
-            for board_row in range(3):
-                for board_col in range(3):
-                    self._get_valid_moves_subboard(board_row, board_col, valid_moves)
+            return self._get_valid_moves_subboard(self.next_subboard)
+
+        valid_moves = []
+        for board_row in range(3):
+            for board_col in range(3):
+                valid_moves.extend(self._get_valid_moves_subboard((board_row, board_col)))
 
         return valid_moves
 
-    def _get_valid_moves_subboard(self, board_row: int, board_col: int, valid_moves: list):
-        subboard = self.subboards[board_row][board_col]
-        if subboard.winner:
-            return
-
-        for subboard_row in range(3):
-            for subboard_col in range(3):
-                if subboard.board[subboard_row][subboard_col] is None:
-                    valid_moves.append(((board_row, board_col), (subboard_row, subboard_col)))
-        return
+    def _get_valid_moves_subboard(self, subboard_pos: tuple):
+        moves = self._get_subboard(subboard_pos).get_valid_moves()
+        return [(subboard_pos, move) for move in moves]
     
     def _get_subboard(self, board): return self.subboards[board[0]][board[1]]
+
+    def copy(self):
+        out = UTTT()
+        out.subboards = [[self.subboards[i][j].copy() for j in range(3)] for i in range(3)]
+        out.current_player = self.current_player
+        out.next_subboard = self.next_subboard
+        out.winner = self.winner
+        return out
