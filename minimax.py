@@ -83,8 +83,8 @@ def minimax(state: UTTT, depth: int, alpha: float, beta: float, maximizing: bool
     return best_score, best_move
 
 # predict players best move in the given game state; minimax from this state as the root node, using alpha-beta pruning
-def predict(state: UTTT, player: str):
-    _, best_move = minimax(state, MAX_DEPTH, float('-inf'), float('inf'), True, player)
+def predict(state: UTTT):
+    _, best_move = minimax(state, MAX_DEPTH, float('-inf'), float('inf'), True, state.current_player)
     return best_move
 
 print(predict(UTTT(), 'X'))

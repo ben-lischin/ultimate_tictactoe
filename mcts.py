@@ -68,8 +68,8 @@ def update_tree(root: Node, player: str):
     reward = simulate(path[-1], player)
     back_propogation(path, reward)
 
-def predict(state: UTTT, player: str):
+def predict(state: UTTT):
     root = Node(state, None)
-    for _ in range(ITERATIONS): update_tree(root, player)
+    for _ in range(ITERATIONS): update_tree(root, state.current_player)
     best_node = max(root.children, key=lambda node: node.val)
     return best_node.move_to_here
