@@ -7,15 +7,10 @@ import torch.optim as optim
 from uttt import UTTT
 
 
-def reward(game: UTTT):
-    if game.game_winner() == 'X':
-        return 1
-    if game.game_winner() == 'O':
-        return -1
-    if game.game_winner() == 'T':
-        return 0
-    # give slight penalty to make play faster
-    return -0.01
+def reward(winner, player):
+    if winner == "T": return 0
+    if winner == player: return 1
+    return -1
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward', 'done'))
 
@@ -34,15 +29,20 @@ class Memory(object):
 
 class Network(nn.Module):
     def __init__(self):
-        super(Network, self).__init__()
-        self.l1 = nn.Linear(81, 128)
-        self.l2 = nn.Linear(128, 128)
-        self.l3 = nn.Linear(128, 81)
-    
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1) 
+        self.relu = nn.ReLU()
+        self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)               
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1) 
+        self.flatten = nn.Flatten()
+        self.fc = nn.Linear(32 * 2 * 2, 81) 
+
     def forward(self, x):
-        x = torch.relu(self.l1(x))
-        x = torch.relu(self.l2(x))
-        return self.l3(x)
+        x = self.maxpool(self.relu(self.conv1(x)))
+        x = self.maxpool(self.relu(self.conv2(x)))
+        x = self.flatten(x)
+        x = self.fc(x)
+        return x
 
 # set hyperparameters
 BATCH = 128
@@ -145,7 +145,8 @@ def get_state(game: UTTT):
                 for c in range(3):
                     cell = subboard._query((r, c))
                     state.append(1 if cell == 1 else -1 if cell == 0 else 0)
-    return torch.tensor(state, dtype=torch.float32).unsqueeze(0)
+    state_tensor = torch.tensor(state, dtype=torch.float32)
+    return state_tensor.view(1, 1, 9, 9)  # batch_size=1, channels=1, height=9, width=9
 
 def train_dql(num_episodes=1000):
     agent = Agent()
@@ -162,7 +163,7 @@ def train_dql(num_episodes=1000):
             action_index = 3 * action_move[0][0] + action_move[0][1] + 9 * (3 * action_move[1][0] + action_move[1][1])
             
             next_game = game.make_move(*action_move)
-            r = reward(next_game)
+            r = reward(next_game.game_winner(), game.current_player)
             next_state = get_state(next_game)
             done = next_game.game_winner() is not None
             
