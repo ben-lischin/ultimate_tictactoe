@@ -28,6 +28,9 @@ class Memory(object):
     
     def sample(self, batch_size):
         return random.sample(self.memory, batch_size)
+    
+    def __len__(self):
+        return len(self.memory)
 
 class Network(nn.Module):
     def __init__(self):
@@ -97,8 +100,10 @@ class Agent:
         next_states = torch.cat([s for s in batch.next_state if s is not None])
 
         state_batch = torch.cat(batch.state)
-        action_batch = torch.cat(batch.action)
-        reward_batch = torch.cat(batch.reward)
+        # convert list of integerrs into tensor, need extra dim for gather
+        action_batch = torch.tensor(batch.action, dtype=torch.long).unsqueeze(1)
+        # convery list of floats to tensor
+        reward_batch = torch.tensor(batch.reward, dtype=torch.float32)
         
         # get Q(s, a)
         state_action_vals = self.policy_net(state_batch).gather(1, action_batch)
@@ -164,11 +169,14 @@ def train_dql(num_episodes=1000):
             agent.store_transition(state, action_index, next_state, r, done)
             agent.opt_model()
             state = next_state
+            game = next_game
         
         agent.decay_epsilon()
         # update target net every 10 episodes
         if episode % 10 == 0:
             agent.new_target_net()
+        print(f"{episode} completed")
+    return agent
 
 def predict(game: UTTT):
     agent = Agent()
@@ -177,5 +185,5 @@ def predict(game: UTTT):
     return agent.get_best_action(state_tensor, valid_moves)
 
 if __name__ == "__main__":
-    move = predict(UTTT())
-    print("Predicted Move:", move)
+    trained_dql = train_dql(num_episodes=1000)
+    torch.save(trained_dql.policy_net.state_dict(), "dqn.pth")
