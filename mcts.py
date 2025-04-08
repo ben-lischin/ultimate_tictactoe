@@ -3,7 +3,7 @@ import time
 import math
 from uttt import UTTT
 
-EXPLORATION = 400
+EXPLORATION = 1.5
 ITERATIONS = 1000
 
 def reward(winner, player):

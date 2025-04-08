@@ -3,6 +3,23 @@ from mcts import predict as mcts_predict
 from minimax import predict as minimax_predict
 from dql import predict as dql_predict
 import time
+import random
+
+def random_agent(state: UTTT):
+    return random.choice(state.get_valid_moves())
+
+minimax = "Minimax"
+mcts = "MCTS"
+dql = "DQL"
+rand = "Random"
+
+agents = {
+    minimax: minimax_predict,
+    mcts: mcts_predict,
+    dql: dql_predict,
+    rand: random_agent
+}
+
 
 def print_game_state(game):
     print("\n    0       1       2")
@@ -37,25 +54,11 @@ def print_game_state(game):
 
 def play_game(x: str, o: str, vis=False, final_stats=False):
     x_name = x
-    if x == "Minimax":
-        x_predict = minimax_predict
-    elif x == "MCTS":
-        x_predict = mcts_predict
-    elif x == "DQL":
-        x_predict = dql_predict
-    else:
-        return
+    x_predict = agents[x]
     x_timer = 0
 
     o_name = o
-    if o == "Minimax":
-        o_predict = minimax_predict
-    elif o == "MCTS":
-        o_predict = mcts_predict
-    elif o == "DQL":
-        o_predict = dql_predict
-    else:
-        return
+    o_predict = agents[o]
     o_timer = 0
     
     game = UTTT()
@@ -113,9 +116,6 @@ def play_game(x: str, o: str, vis=False, final_stats=False):
         print(f"   {x_name} (X):\t{x_timer:.3f}s\tavg: {x_timer/move_count:.3f}s/move")
         print(f"   {o_name} (O):\t{o_timer:.3f}s\tavg: {o_timer/move_count:.3f}s/move\n")
 
-minimax = "Minimax"
-mcts = "MCTS"
-dql = "DQL"
 # for i in range(10):
 #     print(f"*** Game {i + 1} ***")
 #     play_game(x=mcts, o=minimax)
