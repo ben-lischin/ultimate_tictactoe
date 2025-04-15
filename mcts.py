@@ -1,5 +1,4 @@
 import random
-import time
 import math
 from uttt import UTTT
 
@@ -21,13 +20,16 @@ class Node:
         self.move_to_here = move
         self.children = []
 
-    def expand_children(self):
+    def expand_children(self, cache = None):
         moves = self.state.get_valid_moves()
         self.children = [Node(self.state.make_move(*move), move) for move in moves]
+        if cache is not None: 
+            for node in self.children: cache[node.state] = node
 
     def update_result(self, reward):
         self.visits += 1
         self.val += reward
+
 
 def ucb(node: Node, parent_visits):
     if parent_visits == 0 or node.visits == 0: return float('inf')
@@ -44,9 +46,9 @@ def select(node: Node) -> list[Node]:
         path.append(node)
     return path
 
-def expand(node: Node):
+def expand(node: Node, cache):
     if node.state.game_winner(): return None
-    node.expand_children()
+    node.expand_children(cache)
     return random.choice(node.children)
 
 def simulate(node: Node, player: str, rollout = random.choice):
@@ -61,15 +63,17 @@ def back_propogation(path: list[Node], reward):
 
 #------------------------ Move Prediction --------------------------#
 
+cache = {}
+
 def update_tree(root: Node, player: str):
     path = select(root)
-    expanded = expand(path[-1])
+    expanded = expand(path[-1], cache)
     if expanded: path.append(expanded)
     reward = simulate(path[-1], player)
     back_propogation(path, reward)
 
 def predict(state: UTTT):
-    root = Node(state, None)
+    root = cache.get(state, Node(state, None))
     for _ in range(ITERATIONS): update_tree(root, state.current_player)
     best_node = max(root.children, key=lambda node: node.val)
     return best_node.move_to_here

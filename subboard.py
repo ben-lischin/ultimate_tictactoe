@@ -74,6 +74,14 @@ class SubBoard:
             slots = [pos_to_str((r, c)) for c in range(3)]
             out += f"{slots[0]}|{slots[1]}|{slots[2]}\n"
         return out
+    
+    def __hash__(self) -> int:
+        return hash((self.occupied, self.board))
+
+    def __eq__(self, value: object, /) -> bool:
+        return (isinstance(value, self.__class__) and 
+                self.occupied == value.occupied and
+                self.board == value.board)
 
     def copy(self):
         out = SubBoard()

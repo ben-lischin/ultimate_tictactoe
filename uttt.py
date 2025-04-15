@@ -94,6 +94,13 @@ class UTTT:
     
     def _get_subboard(self, board): return self.subboards[board[0]][board[1]]
 
+    def __hash__(self) -> int:
+        return hash(tuple(sb for rows in self.subboards for sb in rows))
+
+    def __eq__(self, value: object, /) -> bool:
+        return (isinstance(value, self.__class__) and 
+                self.subboards == value.subboards)
+
     def copy(self):
         out = UTTT()
         out.subboards = [[self.subboards[i][j].copy() for j in range(3)] for i in range(3)]
