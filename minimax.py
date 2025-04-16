@@ -4,10 +4,10 @@ MAX_DEPTH = 5
 
 # utility evaluation weights
 GAME_WIN_UTILITY = 1000 # highest priority: win the game
-SUBBOARD_WIN_UTILITY = 10 # win a subboard
+SUBBOARD_WIN_UTILITY = 50 # win a subboard
 CENTRAL_POSITION_UTILITY = 2 # claim a subboard central position
 CLOSE_TO_SUBBOARD_WIN_UTILITY = 5 # setting up a win on your next move in a subboard (subject to opponent's move)
-GIVE_OP_SUBBOARD_PENALTY = 50 # when you force your opponent to play in a subboard they will win in a single move
+GIVE_OP_SUBBOARD_PENALTY = 10 # when you force your opponent to play in a subboard they will win in a single move
 
 # evaluate a terminal game state: win/loss/tie
 def end_reward(winner, player):
@@ -41,31 +41,32 @@ def is_winnable_subboard(subboard, player_bit):
 
     return False
 
-# active game utility function based on: (1) winning subboards, (2) claiming subboard centeral positions, (3) setting up subboards to win in a single move, (4) not sending opponent into a subboard they will win in 1 move
+# active game utility function based on: (1) winning subboards, (2) claiming subboard centeral positions, (3) setting up subboards to win in a single move, (4) sending opponent into a subboard they will win in 1 move
 def evaluate_game(state: UTTT, player: str):
     score = 0
     opponent = 'O' if player == 'X' else 'X'
     player_bit = 1 if player == 'X' else 0
     opponent_bit = 1 - player_bit
-    
+
     for i in range(3):
         for j in range(3):
             subboard = state.subboards[i][j]
-            
+
+            # subboard wins
             if subboard.winner == player:
                 score += SUBBOARD_WIN_UTILITY
             elif subboard.winner == opponent:
                 score -= SUBBOARD_WIN_UTILITY
+
             elif subboard.winner is None:
                 # valuable center position
                 center = subboard._query((1, 1))
-                if center is not None:
-                    if (center == 1 and player == 'X') or (center == 0 and player == 'O'):
-                        score += CENTRAL_POSITION_UTILITY
-                    else:
-                        score -= CENTRAL_POSITION_UTILITY
-                
-                # 1 move away from winning a subboard
+                if center == player_bit:
+                    score += CENTRAL_POSITION_UTILITY
+                elif center == opponent_bit:
+                    score -= CENTRAL_POSITION_UTILITY
+
+                 # 1 move away from winning a subboard
                 if is_winnable_subboard(subboard, player_bit):
                     score += CLOSE_TO_SUBBOARD_WIN_UTILITY
                 if is_winnable_subboard(subboard, opponent_bit):
@@ -74,11 +75,13 @@ def evaluate_game(state: UTTT, player: str):
     # consider the next subboard we are forcing the opponent to play in
     if state.next_subboard is not None:
         next_board = state.subboards[state.next_subboard[0]][state.next_subboard[1]]
-        
-        # penalize if sending opponent to a subboard they will win in a single move
-        if next_board.winner is None and is_winnable_subboard(next_board, opponent_bit):
-            score -= GIVE_OP_SUBBOARD_PENALTY
-    
+        if next_board.winner is None:
+            # penalize if sending opponent to a subboard they will win in a single move
+            if is_winnable_subboard(next_board, opponent_bit):
+                score -= GIVE_OP_SUBBOARD_PENALTY
+            if is_winnable_subboard(next_board, player_bit):
+                score += GIVE_OP_SUBBOARD_PENALTY
+
     return score
 
 # def move_heuristic(state: UTTT, move: tuple, player: str):
