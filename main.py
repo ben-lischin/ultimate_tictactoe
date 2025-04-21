@@ -4,6 +4,7 @@ from minimax import predict as minimax_predict
 from dql import predict as dql_predict
 import time
 import random
+import json
 
 def random_agent(state: UTTT):
     return random.choice(state.get_valid_moves())
@@ -19,7 +20,6 @@ agents = {
     dql: dql_predict,
     rand: random_agent
 }
-
 
 def print_game_state(game):
     print("\n    0       1       2")
@@ -103,20 +103,75 @@ def play_game(x: str, o: str, vis=False, final_stats=False):
     
     if winner == 'T':
         print("Game over!\t --> tie")
+        return ""
     else:
         print(f"Game over!\t --> Winner: {winner_name} ({winner})")
+        return winner_name
 
-    if final_stats:
-        print(f"Moves made: {move_count}\n")
+    # if final_stats:
+    #     print(f"Moves made: {move_count}\n")
 
-        print("\nFinal board:")
-        print_game_state(game)        
+    #     print("\nFinal board:")
+    #     print_game_state(game)        
 
-        print("\nCumulative move timers:")
-        print(f"   {x_name} (X):\t{x_timer:.3f}s\tavg: {x_timer/move_count:.3f}s/move")
-        print(f"   {o_name} (O):\t{o_timer:.3f}s\tavg: {o_timer/move_count:.3f}s/move\n")
+    #     print("\nCumulative move timers:")
+    #     if x_name == dql:
+    #         print(f"   {x_name} (X):\t{x_timer:.3f}s\tavg: {x_timer/move_count:.3f}s/move\n")
+    #     if o_name == dql:
+    #         print(f"   {o_name} (O):\t{o_timer:.3f}s\tavg: {o_timer/move_count:.3f}s/move\n")
+
+
+# ---------- Collect Results ----------
+
+matchups = [
+    (minimax, rand),
+    (minimax, mcts),
+    (minimax, dql),
+    (mcts, rand),
+    (mcts, dql),
+    (dql, rand),
+]
+
+match_results = {
+    minimax: {mcts: {"win": 0, "loss": 0, "draw": 0}, dql: {"win": 0, "loss": 0, "draw": 0}, rand: {"win": 0, "loss": 0, "draw": 0}},
+    mcts: {minimax: {"win": 0, "loss": 0, "draw": 0}, dql: {"win": 0, "loss": 0, "draw": 0}, rand: {"win": 0, "loss": 0, "draw": 0}},
+    dql: {minimax: {"win": 0, "loss": 0, "draw": 0}, mcts: {"win": 0, "loss": 0, "draw": 0}, rand: {"win": 0, "loss": 0, "draw": 0}},
+    rand: {minimax: {"win": 0, "loss": 0, "draw": 0}, mcts:  {"win": 0, "loss": 0, "draw": 0}, dql:  {"win": 0, "loss": 0, "draw": 0}},
+}
+
+for matchup in matchups:
+    print(f"****** Simulating {matchup[0]} vs {matchup[1]}... ******")
+    for _ in range(500):
+        X, O = matchup
+        winner = play_game(x=X, o=O)
+        if winner == X:
+            match_results[X][O]["win"] += 1
+            match_results[O][X]["loss"] += 1
+        elif winner == O:
+            match_results[O][X]["win"] += 1
+            match_results[X][O]["loss"] += 1
+        elif winner == "":
+            match_results[X][O]["draw"] += 1
+            match_results[O][X]["draw"] += 1
+    
+    for _ in range(500):
+        O, X = matchup
+        winner = play_game(x=X, o=O)
+        if winner == X:
+            match_results[X][O]["win"] += 1
+            match_results[O][X]["loss"] += 1
+        elif winner == O:
+            match_results[O][X]["win"] += 1
+            match_results[X][O]["loss"] += 1
+        elif winner == "":
+            match_results[X][O]["draw"] += 1
+            match_results[O][X]["draw"] += 1
+
+with open("results.json", "w") as file:
+    json.dump(match_results, file, indent=4)
+
 
 # for i in range(10):
-#     print(f"*** Game {i + 1} ***")
-#     play_game(x=mcts, o=minimax)
-play_game(x=mcts, o=minimax, final_stats=True)
+#     play_game(x=mcts, o=minimax, final_stats=True)
+
+# play_game(x=mcts, o=minimax, vis=True, final_stats=True)
