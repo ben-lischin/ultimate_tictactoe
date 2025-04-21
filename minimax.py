@@ -2,7 +2,7 @@ from uttt import UTTT
 
 MAX_DEPTH = 5
 
-# utility evaluation weights
+# evaluation weights
 GAME_WIN_UTILITY = 1000 # highest priority: win the game
 SUBBOARD_WIN_UTILITY = 50 # win a subboard
 CENTRAL_POSITION_UTILITY = 2 # claim a subboard central position
@@ -84,33 +84,6 @@ def evaluate_game(state: UTTT, player: str):
 
     return score
 
-# def move_heuristic(state: UTTT, move: tuple, player: str):
-#     new_state = state.make_move(*move)
-
-#     # game win
-#     if new_state.game_winner() == player:
-#         return 5
-    
-#     # block opponent's game win
-#     # ...
-
-#     # subboard win
-#     if new_state.subboards[move[0][0]][move[0][1]].winner == player:
-#         return 3  
-
-#     # block opponent's subboard win
-#     # ...
-
-#     # claim subboard center
-#     if move == (1, 1):
-#         return 1
-
-#     return 0
-
-# def sort_moves(state: UTTT, valid_moves: list, player: str):
-#     # highest value moves first -> optimize pruning
-#     return sorted(valid_moves, key=lambda move: move_heuristic(state, move, player), reverse=True)
-
 # returns the best (score, move) for the player
 def minimax(state: UTTT, depth: int, alpha: float, beta: float, maximizing: bool, player: str):
     winner = state.game_winner()
@@ -125,9 +98,6 @@ def minimax(state: UTTT, depth: int, alpha: float, beta: float, maximizing: bool
     valid_moves = state.get_valid_moves()
     if not valid_moves:
         return 0, None
-    
-    # # sort moves by heuristic to improve pruning
-    # valid_moves = sort_moves(state, valid_moves, player)
     
     # find the min/max move
     best_move = None
@@ -167,9 +137,3 @@ def minimax(state: UTTT, depth: int, alpha: float, beta: float, maximizing: bool
 def predict(state: UTTT):
     _, best_move = minimax(state, MAX_DEPTH, float('-inf'), float('inf'), True, state.current_player)
     return best_move
-
-# if __name__ == "__main__":
-#     import time
-#     start = time.time()
-#     predict(UTTT(), 'X')
-#     print(f"{time.time() - start:.2f}s")
