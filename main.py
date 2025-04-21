@@ -140,7 +140,7 @@ match_results = {
 }
 
 for matchup in matchups:
-    print(f"****** Simulating {matchup[0]} vs {matchup[1]}... ******")
+    print(f"Simulating matchup: {matchup[0]} vs {matchup[1]}...")
     for _ in range(500):
         X, O = matchup
         winner = play_game(x=X, o=O)
@@ -169,9 +169,3 @@ for matchup in matchups:
 
 with open("results.json", "w") as file:
     json.dump(match_results, file, indent=4)
-
-
-# for i in range(10):
-#     play_game(x=mcts, o=minimax, final_stats=True)
-
-# play_game(x=mcts, o=minimax, vis=True, final_stats=True)

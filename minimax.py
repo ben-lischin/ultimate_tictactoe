@@ -41,7 +41,7 @@ def is_winnable_subboard(subboard, player_bit):
 
     return False
 
-# active game utility function based on: (1) winning subboards, (2) claiming subboard centeral positions, (3) setting up subboards to win in a single move, (4) sending opponent into a subboard they will win in 1 move
+# active game utility function
 def evaluate_game(state: UTTT, player: str):
     score = 0
     opponent = 'O' if player == 'X' else 'X'
@@ -133,7 +133,6 @@ def minimax(state: UTTT, depth: int, alpha: float, beta: float, maximizing: bool
     
     return best_score, best_move
 
-# predict players best move in the given game state; minimax from this state as the root node, using alpha-beta pruning
 def predict(state: UTTT):
     _, best_move = minimax(state, MAX_DEPTH, float('-inf'), float('inf'), True, state.current_player)
     return best_move

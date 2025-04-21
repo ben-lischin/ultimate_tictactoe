@@ -7,8 +7,6 @@ class InvalidMoveException(Exception): pass
 class UTTT:
     """
     Ultimate Tic-Tac-Toe game model
-
-    ...
     """
 
     def __init__(self):

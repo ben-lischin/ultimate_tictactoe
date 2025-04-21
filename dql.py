@@ -188,4 +188,4 @@ def predict(game: UTTT):
 
 if __name__ == "__main__":
     trained_dql = train_dql(num_episodes=1000)
-    torch.save(trained_dql.policy_net.state_dict(), "dqn_2.pth")
+    torch.save(trained_dql.policy_net.state_dict(), "dqn.pth")
